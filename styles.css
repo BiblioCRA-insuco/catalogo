@@ -66,6 +66,48 @@
     line-height:1.4;
   }
 
+  /* ---------- TABS (Libros / Recursos) ---------- */
+  .tabs-row{
+    display:flex;
+    gap:6px;
+    margin-bottom:14px;
+    border-bottom:1px solid var(--line-strong);
+  }
+  .tab-btn{
+    border:none;
+    background:none;
+    font-family:'Oswald', serif;
+    font-size:1rem;
+    font-weight:500;
+    color:var(--muted);
+    padding:8px 16px;
+    cursor:pointer;
+    border-bottom:3px solid transparent;
+    margin-bottom:-1px;
+    display:flex;
+    align-items:center;
+    gap:8px;
+    transition:color .15s, border-color .15s;
+  }
+  .tab-btn:hover{ color:var(--ink); }
+  .tab-btn.active{
+    color:var(--ink);
+    border-bottom-color:var(--terracotta);
+  }
+  .tab-btn .count{
+    font-size:0.74rem;
+    background:var(--cream);
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:1px 8px;
+    color:var(--muted);
+    font-family:'Inter', sans-serif;
+  }
+  .tab-btn.active .count{
+    color:var(--terracotta);
+    border-color:var(--terracotta);
+  }
+
   /* search */
   .search-row{
     display:flex;
@@ -200,38 +242,6 @@
     background-position:right 10px center;
   }
   .filter-group select:focus{ border-color:var(--terracotta); outline:none; }
-
-  /* type filter pills (recursos/libros) */
-  .type-pills{
-    display:flex;
-    flex-direction:column;
-    gap:4px;
-  }
-  .type-pills button{
-    text-align:left;
-    border:none;
-    background:none;
-    font-family:'Inter', sans-serif;
-    font-size:0.86rem;
-    color:var(--ink);
-    padding:7px 8px;
-    border-radius:6px;
-    cursor:pointer;
-    display:flex;
-    justify-content:space-between;
-    transition:background .15s;
-  }
-  .type-pills button:hover{ background:var(--cream); }
-  .type-pills button.active{
-    background:var(--ink);
-    color:var(--cream);
-    font-weight:500;
-  }
-  .type-pills .count{
-    color:var(--muted);
-    font-size:0.78rem;
-  }
-  .type-pills button.active .count{ color:var(--cream); opacity:0.7; }
 
   /* ---------- RESULTS ---------- */
   .results-header{
@@ -377,62 +387,92 @@
     color:var(--ink);
   }
 
-  /* LIST VIEW */
-  .list{ display:flex; flex-direction:column; }
-  .list-row{
-    display:grid;
-    grid-template-columns:46px 1fr 160px 160px 70px;
-    gap:14px;
-    align-items:center;
-    padding:11px 12px;
-    border-bottom:1px solid var(--cream);
-    cursor:pointer;
-    transition:background .12s;
+  /* TABLE VIEW */
+  .table-wrap{
+    width:100%;
+    overflow-x:auto;
+    border:1px solid var(--line);
+    border-radius:10px;
+    background:var(--paper);
   }
-  .list-row:hover{ background:var(--paper); }
-  .list-row.head{
+  table.catalog-table{
+    width:100%;
+    border-collapse:collapse;
+    font-size:0.85rem;
+  }
+  table.catalog-table thead th{
+    text-align:left;
     font-size:0.7rem;
     text-transform:uppercase;
     letter-spacing:0.06em;
     color:var(--muted);
     font-weight:500;
-    cursor:default;
+    padding:11px 14px;
     border-bottom:2px solid var(--line-strong);
+    white-space:nowrap;
+    background:var(--cream);
+    position:sticky;
+    top:0;
   }
-  .list-row.head:hover{ background:none; }
-  .list-thumb{
+  table.catalog-table tbody td{
+    padding:10px 14px;
+    border-bottom:1px solid var(--cream);
+    vertical-align:middle;
+  }
+  table.catalog-table tbody tr{
+    cursor:pointer;
+    transition:background .12s;
+  }
+  table.catalog-table tbody tr:hover{
+    background:var(--cream);
+  }
+  table.catalog-table tbody tr:last-child td{
+    border-bottom:none;
+  }
+  table.catalog-table .col-title{
+    font-family:'Oswald', serif;
+    font-weight:500;
+    font-size:0.95rem;
+    color:var(--ink);
+  }
+  table.catalog-table .col-title .sub{
+    display:block;
+    font-family:'Inter', sans-serif;
+    font-weight:400;
+    font-size:0.76rem;
+    color:var(--muted);
+    margin-top:2px;
+  }
+  table.catalog-table .col-thumb{
+    width:44px;
+  }
+  table.catalog-table .table-thumb{
     width:36px; height:48px;
     border-radius:3px;
     background:var(--cream);
     border:1px solid var(--cream);
     overflow:hidden;
-    flex-shrink:0;
     display:flex;
     align-items:center;
     justify-content:center;
   }
-  .list-thumb img{ width:100%; height:100%; object-fit:cover; }
-  .list-thumb svg{ width:16px; height:16px; stroke:var(--line-strong); }
-  .list-main .t{
-    font-family:'Oswald', serif;
+  table.catalog-table .table-thumb img{ width:100%; height:100%; object-fit:cover; }
+  table.catalog-table .table-thumb svg{ width:16px; height:16px; stroke:var(--line-strong); }
+  table.catalog-table .col-qty{
+    text-align:right;
     font-weight:500;
-    font-size:0.92rem;
-    margin:0 0 2px;
-  }
-  .list-main .s{
-    font-size:0.78rem;
-    color:var(--muted);
-    margin:0;
-  }
-  .list-col{
-    font-size:0.8rem;
-    color:var(--ink);
-    overflow:hidden;
-    text-overflow:ellipsis;
     white-space:nowrap;
   }
-  .list-col.muted{ color:var(--muted); }
-  .list-qty{ text-align:right; font-size:0.85rem; font-weight:500; }
+  table.catalog-table .col-muted{
+    color:var(--muted);
+  }
+  table.catalog-table .col-tags{
+    max-width:240px;
+    white-space:normal;
+    color:var(--muted);
+    font-size:0.8rem;
+    line-height:1.4;
+  }
 
   /* empty / loading */
   .state-msg{
@@ -584,10 +624,12 @@
     .layout{ grid-template-columns:1fr; }
     .filters{ position:static; }
     .filter-group{ display:inline-block; width:48%; margin-right:2%; vertical-align:top; }
-    .type-pills{ flex-direction:row; flex-wrap:wrap; }
-    .type-pills button{ flex:1; min-width:90px; justify-content:center; gap:4px; }
-    .list-row{ grid-template-columns:40px 1fr 90px; }
-    .list-row .list-col:nth-child(4){ display:none; }
+    .tabs-row{ gap:0; }
+    .tab-btn{ flex:1; justify-content:center; padding:10px 6px; font-size:0.92rem; }
+    table.catalog-table{ font-size:0.8rem; }
+    table.catalog-table .col-tags,
+    table.catalog-table thead th:nth-child(4),
+    table.catalog-table tbody td:nth-child(4){ display:none; }
     .modal-inner{ grid-template-columns:1fr; }
     .modal-cover{ max-width:160px; margin:0 auto; }
     .brand-row{ flex-direction:column; align-items:flex-start; }
