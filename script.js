@@ -11,9 +11,15 @@ const CSV_URL_LIBROS   = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gvi
 const CSV_URL_RECURSOS = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&gid=${GID_RECURSOS}`;
 
 /* ====================== ESTADO ====================== */
-let allItems = [];
-let currentView = 'list';
-let filters = { tipo:'', autor:'', apto:'', asignatura:'', tema:'', q:'' };
+let allLibros = [];
+let allRecursos = [];
+let currentTab = 'libros'; // 'libros' | 'recursos'
+let currentView = 'list';  // 'list' | 'grid'
+
+let filters = {
+  libros:   { autor:'', apto:'', asignatura:'', tema:'', q:'' },
+  recursos: { categoria:'', q:'' }
+};
 
 /* ====================== UTILIDADES ====================== */
 
@@ -87,7 +93,7 @@ async function init(){
       loadSheet(CSV_URL_RECURSOS)
     ]);
 
-    const librosNorm = libros.map(r => ({
+    allLibros = libros.map(r => ({
       _tipo: 'libro',
       _id: r['Row ID'],
       titulo: r['Título'],
@@ -102,23 +108,23 @@ async function init(){
       raw: r
     }));
 
-    const recursosNorm = recursos.map(r => ({
+    allRecursos = recursos.map(r => ({
       _tipo: 'recurso',
       _id: r['Row ID'],
       titulo: r['Recurso'],
       subtitulo: r['Categoría'],
-      autores: '',
-      apto: '',
-      asignaturas: '',
-      temas: r['Categoría'],
+      categoria: r['Categoría'],
       cantidad: r['Cantidad total'],
       descripcion: r['Descripción'],
       imagen: driveImageUrl(r['Imagen']),
       raw: r
     }));
 
-    allItems = [...librosNorm, ...recursosNorm];
-    status.textContent = `${allItems.length} ítems cargados · actualizado al abrir la página`;
+    const total = allLibros.length + allRecursos.length;
+    status.textContent = `${total} ítems cargados · actualizado al abrir la página`;
+
+    document.getElementById('countLibros').textContent = allLibros.length;
+    document.getElementById('countRecursos').textContent = allRecursos.length;
 
     populateFilters();
     render();
@@ -137,12 +143,13 @@ async function init(){
 /* ====================== FILTROS ====================== */
 
 function populateFilters(){
+  // Libros
   const autores = new Set();
   const aptos = new Set();
   const asignaturas = new Set();
   const temas = new Set();
 
-  allItems.forEach(item => {
+  allLibros.forEach(item => {
     splitMulti(item.autores).forEach(a => autores.add(a));
     splitMulti(item.apto).forEach(a => aptos.add(a));
     splitMulti(item.asignaturas).forEach(a => asignaturas.add(a));
@@ -153,6 +160,13 @@ function populateFilters(){
   fillSelect('filterApto', aptos, 'Todos los cursos/niveles');
   fillSelect('filterAsignatura', asignaturas, 'Todas las asignaturas');
   fillSelect('filterTema', temas, 'Todos los temas');
+
+  // Recursos
+  const categorias = new Set();
+  allRecursos.forEach(item => {
+    splitMulti(item.categoria).forEach(c => categorias.add(c));
+  });
+  fillSelect('filterCategoria', categorias, 'Todas las categorías');
 }
 
 function fillSelect(id, valuesSet, placeholder){
@@ -163,26 +177,37 @@ function fillSelect(id, valuesSet, placeholder){
 }
 
 function applyFilters(){
-  const q = filters.q.toLowerCase();
-  return allItems.filter(item => {
-    if(filters.tipo && item._tipo !== filters.tipo) return false;
-    if(filters.autor && !splitMulti(item.autores).includes(filters.autor)) return false;
-    if(filters.apto && !splitMulti(item.apto).includes(filters.apto)) return false;
-    if(filters.asignatura && !splitMulti(item.asignaturas).includes(filters.asignatura)) return false;
-    if(filters.tema && !splitMulti(item.temas).includes(filters.tema)) return false;
-    if(q){
-      const hay = `${item.titulo} ${item.subtitulo} ${item.autores} ${item.temas}`.toLowerCase();
-      if(!hay.includes(q)) return false;
-    }
-    return true;
-  });
+  const f = filters[currentTab];
+  const q = f.q.toLowerCase();
+
+  if(currentTab === 'libros'){
+    return allLibros.filter(item => {
+      if(f.autor && !splitMulti(item.autores).includes(f.autor)) return false;
+      if(f.apto && !splitMulti(item.apto).includes(f.apto)) return false;
+      if(f.asignatura && !splitMulti(item.asignaturas).includes(f.asignatura)) return false;
+      if(f.tema && !splitMulti(item.temas).includes(f.tema)) return false;
+      if(q){
+        const hay = `${item.titulo} ${item.subtitulo} ${item.autores} ${item.temas}`.toLowerCase();
+        if(!hay.includes(q)) return false;
+      }
+      return true;
+    });
+  } else {
+    return allRecursos.filter(item => {
+      if(f.categoria && !splitMulti(item.categoria).includes(f.categoria)) return false;
+      if(q){
+        const hay = `${item.titulo} ${item.categoria} ${item.descripcion}`.toLowerCase();
+        if(!hay.includes(q)) return false;
+      }
+      return true;
+    });
+  }
 }
 
 /* ====================== RENDER ====================== */
 
 function render(){
   const filtered = applyFilters();
-  updateCounts();
   updateActiveFilters();
 
   document.getElementById('resultCount').textContent = filtered.length;
@@ -202,28 +227,22 @@ function render(){
   if(currentView === 'grid'){
     container.innerHTML = `<div class="grid">${filtered.map(cardHtml).join('')}</div>`;
   } else {
-    container.innerHTML = `<div class="list">
-      <div class="list-row head">
-        <div></div>
-        <div>Título</div>
-        <div>Autor / Categoría</div>
-        <div>Detalles</div>
-        <div style="text-align:right">Cant.</div>
-      </div>
-      ${filtered.map(listRowHtml).join('')}
-    </div>`;
+    container.innerHTML = currentTab === 'libros'
+      ? tableHtmlLibros(filtered)
+      : tableHtmlRecursos(filtered);
   }
 
   // bind click events
   container.querySelectorAll('[data-item-id]').forEach(el => {
     el.addEventListener('click', () => {
-      const item = allItems.find(i => i._id === el.dataset.itemId);
+      const source = currentTab === 'libros' ? allLibros : allRecursos;
+      const item = source.find(i => i._id === el.dataset.itemId);
       if(item) openModal(item);
     });
   });
 }
 
-function coverImg(item, sizeClass){
+function coverImg(item){
   if(item.imagen){
     return `<img src="${escapeHtml(item.imagen)}" alt="" loading="lazy" onerror="this.parentElement.innerHTML=fallbackCover('${item._tipo}')">`;
   }
@@ -237,60 +256,119 @@ function fallbackCover(tipo){
   return `<div class="cover-fallback">${icon}${tipo === 'recurso' ? 'Sin imagen' : 'Sin portada'}</div>`;
 }
 
-function cardHtml(item){
-  const badge = item._tipo === 'recurso'
-    ? `<span class="badge-type recurso">Recurso</span>`
-    : `<span class="badge-type libro">Libro</span>`;
-  const sub = item._tipo === 'recurso'
-    ? item.subtitulo
-    : (splitMulti(item.autores)[0] || '');
+/* ---- Vista de tarjetas (grid) ---- */
 
+function cardHtml(item){
+  if(item._tipo === 'recurso'){
+    return `
+      <div class="card" data-item-id="${escapeHtml(item._id)}">
+        <div class="card-cover">
+          <span class="badge-type recurso">Recurso</span>
+          ${coverImg(item)}
+        </div>
+        <div class="card-body">
+          <p class="card-title">${escapeHtml(item.titulo)}</p>
+          <p class="card-sub">${escapeHtml(item.categoria)}</p>
+          <div class="card-foot">
+            <span>Recurso</span>
+            <span class="qty-tag">×${escapeHtml(item.cantidad || '0')}</span>
+          </div>
+        </div>
+      </div>`;
+  }
+
+  const autorPrincipal = splitMulti(item.autores)[0] || '';
   return `
     <div class="card" data-item-id="${escapeHtml(item._id)}">
       <div class="card-cover">
-        ${badge}
+        <span class="badge-type libro">Libro</span>
         ${coverImg(item)}
       </div>
       <div class="card-body">
-        <p class="card-title">${escapeHtml(item.titulo)}${item.subtitulo && item._tipo==='libro' ? ', ' + escapeHtml(item.subtitulo) : ''}</p>
-        <p class="card-sub">${escapeHtml(sub)}</p>
+        <p class="card-title">${escapeHtml(item.titulo)}${item.subtitulo ? ', ' + escapeHtml(item.subtitulo) : ''}</p>
+        <p class="card-sub">${escapeHtml(autorPrincipal)}</p>
         <div class="card-foot">
-          <span>${escapeHtml(item._tipo === 'recurso' ? 'Recurso' : (splitMulti(item.apto)[0] || 'General'))}</span>
+          <span>${escapeHtml(splitMulti(item.apto)[0] || 'General')}</span>
           <span class="qty-tag">×${escapeHtml(item.cantidad || '0')}</span>
         </div>
       </div>
     </div>`;
 }
 
-function listRowHtml(item){
-  const autorOrCat = item._tipo === 'recurso' ? item.subtitulo : item.autores;
-  const detalle = item._tipo === 'recurso' ? item.temas : (item.apto || item.temas);
+/* ---- Vista de tabla (lista) ---- */
+
+function tableHtmlLibros(items){
+  const rows = items.map(item => `
+    <tr data-item-id="${escapeHtml(item._id)}">
+      <td class="col-title">
+        ${escapeHtml(item.titulo)}${item.subtitulo ? `<span class="sub">${escapeHtml(item.subtitulo)}</span>` : ''}
+      </td>
+      <td class="col-muted">${escapeHtml(item.autores || '—')}</td>
+      <td class="col-tags">${escapeHtml(item.apto || '—')}</td>
+      <td class="col-tags">${escapeHtml(item.asignaturas || '—')}</td>
+      <td class="col-qty">×${escapeHtml(item.cantidad || '0')}</td>
+    </tr>`).join('');
+
   return `
-    <div class="list-row" data-item-id="${escapeHtml(item._id)}">
-      <div class="list-thumb">${coverImg(item)}</div>
-      <div class="list-main">
-        <p class="t">${escapeHtml(item.titulo)}${item.subtitulo && item._tipo==='libro' ? ', ' + escapeHtml(item.subtitulo) : ''}</p>
-        <p class="s">${escapeHtml(item._tipo === 'recurso' ? 'Recurso' : 'Libro')}</p>
-      </div>
-      <div class="list-col">${escapeHtml(autorOrCat || '—')}</div>
-      <div class="list-col muted">${escapeHtml(detalle || '—')}</div>
-      <div class="list-qty">×${escapeHtml(item.cantidad || '0')}</div>
+    <div class="table-wrap">
+      <table class="catalog-table">
+        <thead>
+          <tr>
+            <th>Título</th>
+            <th>Autores</th>
+            <th>Apto para</th>
+            <th>Asignaturas</th>
+            <th style="text-align:right">Cantidad</th>
+          </tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>
     </div>`;
 }
 
-function updateCounts(){
-  document.getElementById('countAll').textContent = allItems.length;
-  document.getElementById('countLibros').textContent = allItems.filter(i => i._tipo === 'libro').length;
-  document.getElementById('countRecursos').textContent = allItems.filter(i => i._tipo === 'recurso').length;
+function tableHtmlRecursos(items){
+  const rows = items.map(item => `
+    <tr data-item-id="${escapeHtml(item._id)}">
+      <td class="col-thumb"><div class="table-thumb">${coverImg(item)}</div></td>
+      <td class="col-title">${escapeHtml(item.titulo)}</td>
+      <td class="col-muted">${escapeHtml(item.categoria || '—')}</td>
+      <td class="col-qty">×${escapeHtml(item.cantidad || '0')}</td>
+    </tr>`).join('');
+
+  return `
+    <div class="table-wrap">
+      <table class="catalog-table">
+        <thead>
+          <tr>
+            <th></th>
+            <th>Recurso</th>
+            <th>Categoría</th>
+            <th style="text-align:right">Cantidad total</th>
+          </tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>`;
 }
 
+/* ====================== FILTROS ACTIVOS ====================== */
+
 function updateActiveFilters(){
-  const map = [
-    ['autor', filters.autor],
-    ['apto', filters.apto],
-    ['asignatura', filters.asignatura],
-    ['tema', filters.tema],
-  ];
+  const f = filters[currentTab];
+  let map;
+  if(currentTab === 'libros'){
+    map = [
+      ['autor', f.autor],
+      ['apto', f.apto],
+      ['asignatura', f.asignatura],
+      ['tema', f.tema],
+    ];
+  } else {
+    map = [
+      ['categoria', f.categoria],
+    ];
+  }
+
   const container = document.getElementById('activeFilters');
   container.innerHTML = map
     .filter(([,v]) => v)
@@ -300,8 +378,10 @@ function updateActiveFilters(){
   container.querySelectorAll('[data-clear]').forEach(btn => {
     btn.addEventListener('click', () => {
       const key = btn.dataset.clear;
-      filters[key] = '';
-      document.getElementById('filter' + key.charAt(0).toUpperCase() + key.slice(1)).value = '';
+      filters[currentTab][key] = '';
+      const selId = 'filter' + key.charAt(0).toUpperCase() + key.slice(1);
+      const sel = document.getElementById(selId);
+      if(sel) sel.value = '';
       render();
     });
   });
@@ -368,33 +448,46 @@ function closeModal(){
 
 /* ====================== EVENTOS ====================== */
 
-document.getElementById('searchInput').addEventListener('input', e => {
-  filters.q = e.target.value;
-  render();
-});
-
-document.querySelectorAll('#typePills button').forEach(btn => {
+// Cambio de pestaña principal (Libros / Recursos)
+document.querySelectorAll('.tab-btn').forEach(btn => {
   btn.addEventListener('click', () => {
-    document.querySelectorAll('#typePills button').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
-    filters.tipo = btn.dataset.type;
+    currentTab = btn.dataset.tab;
+
+    // mostrar/ocultar bloques de filtros correspondientes
+    document.getElementById('filtersLibros').style.display = currentTab === 'libros' ? '' : 'none';
+    document.getElementById('filtersRecursos').style.display = currentTab === 'recursos' ? '' : 'none';
+
+    // limpiar búsqueda al cambiar de pestaña
+    document.getElementById('searchInput').value = '';
+
     render();
   });
+});
+
+document.getElementById('searchInput').addEventListener('input', e => {
+  filters[currentTab].q = e.target.value;
+  render();
 });
 
 ['Autor','Apto','Asignatura','Tema'].forEach(name => {
   document.getElementById('filter' + name).addEventListener('change', e => {
-    filters[name.toLowerCase()] = e.target.value;
+    filters.libros[name.toLowerCase()] = e.target.value;
     render();
   });
 });
 
+document.getElementById('filterCategoria').addEventListener('change', e => {
+  filters.recursos.categoria = e.target.value;
+  render();
+});
+
 document.getElementById('clearFilters').addEventListener('click', () => {
-  filters = { tipo:'', autor:'', apto:'', asignatura:'', tema:'', q:'' };
+  filters.libros = { autor:'', apto:'', asignatura:'', tema:'', q:'' };
+  filters.recursos = { categoria:'', q:'' };
   document.querySelectorAll('select').forEach(s => s.value = '');
   document.getElementById('searchInput').value = '';
-  document.querySelectorAll('#typePills button').forEach(b => b.classList.remove('active'));
-  document.querySelector('#typePills button[data-type=""]').classList.add('active');
   render();
 });
 

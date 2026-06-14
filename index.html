@@ -21,6 +21,12 @@
       </div>
       <div class="meta-status" id="statusLine">Cargando catálogo…</div>
     </div>
+
+    <div class="tabs-row" id="tabsRow">
+      <button class="tab-btn active" data-tab="libros">Libros <span class="count" id="countLibros">0</span></button>
+      <button class="tab-btn" data-tab="recursos">Recursos <span class="count" id="countRecursos">0</span></button>
+    </div>
+
     <div class="search-row">
       <div class="search-box">
         <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.3-4.3"/></svg>
@@ -45,33 +51,32 @@
   <aside class="filters">
     <h2>Filtros <button class="clear-filters" id="clearFilters">Limpiar todo</button></h2>
 
-    <div class="filter-group">
-      <label>Tipo de ítem</label>
-      <div class="type-pills" id="typePills">
-        <button data-type="" class="active">Todos <span class="count" id="countAll">0</span></button>
-        <button data-type="libro">Libros <span class="count" id="countLibros">0</span></button>
-        <button data-type="recurso">Recursos <span class="count" id="countRecursos">0</span></button>
+    <!-- Filtros para LIBROS -->
+    <div id="filtersLibros">
+      <div class="filter-group">
+        <label for="filterAutor">Autor</label>
+        <select id="filterAutor"><option value="">Todos los autores</option></select>
+      </div>
+      <div class="filter-group">
+        <label for="filterApto">Apto para</label>
+        <select id="filterApto"><option value="">Todos los cursos/niveles</option></select>
+      </div>
+      <div class="filter-group">
+        <label for="filterAsignatura">Asignatura</label>
+        <select id="filterAsignatura"><option value="">Todas las asignaturas</option></select>
+      </div>
+      <div class="filter-group">
+        <label for="filterTema">Tema</label>
+        <select id="filterTema"><option value="">Todos los temas</option></select>
       </div>
     </div>
 
-    <div class="filter-group">
-      <label for="filterAutor">Autor</label>
-      <select id="filterAutor"><option value="">Todos los autores</option></select>
-    </div>
-
-    <div class="filter-group">
-      <label for="filterApto">Apto para</label>
-      <select id="filterApto"><option value="">Todos los cursos/niveles</option></select>
-    </div>
-
-    <div class="filter-group">
-      <label for="filterAsignatura">Asignatura</label>
-      <select id="filterAsignatura"><option value="">Todas las asignaturas</option></select>
-    </div>
-
-    <div class="filter-group">
-      <label for="filterTema">Tema / Categoría</label>
-      <select id="filterTema"><option value="">Todos los temas</option></select>
+    <!-- Filtros para RECURSOS -->
+    <div id="filtersRecursos" style="display:none;">
+      <div class="filter-group">
+        <label for="filterCategoria">Categoría</label>
+        <select id="filterCategoria"><option value="">Todas las categorías</option></select>
+      </div>
     </div>
   </aside>
 
@@ -88,7 +93,7 @@
 
 <div class="modal-overlay" id="modalOverlay">
   <div class="modal" id="modalContent"></div>
-<script src="script.js"></script>
 </div>
+<script src="script.js"></script>
 </body>
 </html>
