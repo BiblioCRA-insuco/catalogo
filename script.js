@@ -435,6 +435,8 @@ function openModal(item){
         </div>
         ${item.descripcion ? `<div class="modal-desc"><h4>Descripción</h4><p>${escapeHtml(item.descripcion)}</p></div>` : ''}
         ${r['Notas'] ? `<div class="modal-notes">${escapeHtml(r['Notas'])}</div>` : ''}
+        ${r['Recomendaciones'] ? `<div class="modal-notes">${escapeHtml(r['Recomendaciones'])}</div>` : ''}
+
       </div>
     </div>`;
 
