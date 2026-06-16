@@ -17,7 +17,7 @@ let currentTab = 'libros'; // 'libros' | 'recursos'
 let currentView = 'list';  // 'list' | 'grid'
 
 let filters = {
-  libros:   { autor:'', apto:'', asignatura:'', tema:'', q:'' },
+  libros:   { autor:'', anio:'', asignatura:'', tema:'', q:'' },
   recursos: { categoria:'', q:'' }
 };
 
@@ -127,6 +127,15 @@ async function init(){
     document.getElementById('countRecursos').textContent = allRecursos.length;
 
     populateFilters();
+
+    if(location.hash === '#recursos'){
+      currentTab = 'recursos';
+      document.querySelector('.tab-btn[data-tab="recursos"]').classList.add('active');
+      document.querySelector('.tab-btn[data-tab="libros"]').classList.remove('active');
+      document.getElementById('filtersLibros').style.display = 'none';
+      document.getElementById('filtersRecursos').style.display = '';
+    }
+
     render();
   } catch(err){
     console.error(err);
@@ -135,7 +144,7 @@ async function init(){
       <div class="state-msg">
         <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
         <h3>No se pudo conectar con el catálogo</h3>
-        <p>Verifica que el Google Sheet esté publicado en la web (Archivo → Compartir → Publicar en la web) y que el SHEET_ID y los gid de cada hoja sean correctos en el código.</p>
+        <p>Comunícate con biblioteca.insuco@slepm.cl para solucionarlo a la brevedad posible.</p>
       </div>`;
   }
 }
@@ -145,19 +154,19 @@ async function init(){
 function populateFilters(){
   // Libros
   const autores = new Set();
-  const aptos = new Set();
+  const anio  = new Set();
   const asignaturas = new Set();
   const temas = new Set();
 
   allLibros.forEach(item => {
     splitMulti(item.autores).forEach(a => autores.add(a));
-    splitMulti(item.apto).forEach(a => aptos.add(a));
+    if(item.raw['Año edición']) anio.add(item.raw['Año edición']);
     splitMulti(item.asignaturas).forEach(a => asignaturas.add(a));
     splitMulti(item.temas).forEach(a => temas.add(a));
   });
 
   fillSelect('filterAutor', autores, 'Todos los autores');
-  fillSelect('filterApto', aptos, 'Todos los cursos/niveles');
+  fillSelect('filterAnio', anio, 'Todos los años');
   fillSelect('filterAsignatura', asignaturas, 'Todas las asignaturas');
   fillSelect('filterTema', temas, 'Todos los temas');
 
@@ -182,8 +191,9 @@ function applyFilters(){
 
   if(currentTab === 'libros'){
     return allLibros.filter(item => {
+      if((item.raw['Notas'] || '').toLowerCase().includes('retirado')) return false; // ← agregar esta línea
       if(f.autor && !splitMulti(item.autores).includes(f.autor)) return false;
-      if(f.apto && !splitMulti(item.apto).includes(f.apto)) return false;
+      if(f.anio && item.raw['Año edición'] !== f.anio) return false;
       if(f.asignatura && !splitMulti(item.asignaturas).includes(f.asignatura)) return false;
       if(f.tema && !splitMulti(item.temas).includes(f.tema)) return false;
       if(q){
@@ -304,7 +314,7 @@ function tableHtmlLibros(items){
         ${escapeHtml(item.titulo)}${item.subtitulo ? `<span class="sub">${escapeHtml(item.subtitulo)}</span>` : ''}
       </td>
       <td class="col-muted">${escapeHtml(item.autores || '—')}</td>
-      <td class="col-tags">${escapeHtml(item.apto || '—')}</td>
+      <td class="col-tags">${escapeHtml(item.raw['Año edición'] || '—')}</td>
       <td class="col-tags">${escapeHtml(item.asignaturas || '—')}</td>
       <td class="col-qty">×${escapeHtml(item.cantidad || '0')}</td>
     </tr>`).join('');
@@ -316,7 +326,7 @@ function tableHtmlLibros(items){
           <tr>
             <th>Título</th>
             <th>Autores</th>
-            <th>Apto para</th>
+            <th>Año edición</th>
             <th>Asignaturas</th>
             <th style="text-align:right">Cantidad</th>
           </tr>
@@ -359,7 +369,7 @@ function updateActiveFilters(){
   if(currentTab === 'libros'){
     map = [
       ['autor', f.autor],
-      ['apto', f.apto],
+      ['anio', f.anio],
       ['asignatura', f.asignatura],
       ['tema', f.tema],
     ];
@@ -416,7 +426,6 @@ function openModal(item){
     fields = [
       ['Categoría', r['Categoría']],
       ['Cantidad total', r['Cantidad total']],
-      ['Recomendaciones', r['Recomendaciones']],
     ];
   }
   fields = fields.filter(([,v]) => v && v.trim());
@@ -427,16 +436,15 @@ function openModal(item){
       <div class="modal-cover">${coverImg(item)}</div>
       <div>
         <div class="modal-type ${item._tipo}">${item._tipo === 'recurso' ? 'Recurso' : 'Libro'}</div>
-        <h3 class="modal-title">${escapeHtml(item.titulo)}</h3>
+        <h2 class="modal-title">${escapeHtml(item.titulo)}</h2>
         ${item.subtitulo && isLibro ? `<p class="modal-sub">${escapeHtml(item.subtitulo)}</p>` : ''}
         <div class="modal-fields">
           ${fields.map(([k,v]) => `<div class="field"><div class="k">${escapeHtml(k)}</div><div class="v">${escapeHtml(v)}</div></div>`).join('')}
           <div class="field full"><div class="k">Disponibles</div><div class="v">${escapeHtml(item.cantidad || '0')}</div></div>
         </div>
-        ${item.descripcion ? `<div class="modal-desc"><h4>Descripción</h4><p>${escapeHtml(item.descripcion)}</p></div>` : ''}
-        ${r['Notas'] ? `<div class="modal-notes">${escapeHtml(r['Notas'])}</div>` : ''}
-        ${r['Recomendaciones'] ? `<div class="modal-notes">${escapeHtml(r['Recomendaciones'])}</div>` : ''}
-
+        ${item.descripcion ? `<div class="modal-desc"><h3>Descripción</h3><p>${escapeHtml(item.descripcion)}</p></div>` : ''}
+        ${r['Notas'] ? `<div class="modal-notes"><h3>Notas</h3>${escapeHtml(r['Notas'])}</div>` : ''}
+        ${!isLibro && r['Recomendaciones'] ? `<div class="modal-notes"><h3>Recomendaciones de uso</h3>${escapeHtml(r['Recomendaciones'])}</div>` : ''}
       </div>
     </div>`;
 
@@ -456,6 +464,7 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
     currentTab = btn.dataset.tab;
+    location.hash = currentTab;
 
     // mostrar/ocultar bloques de filtros correspondientes
     document.getElementById('filtersLibros').style.display = currentTab === 'libros' ? '' : 'none';
@@ -473,11 +482,15 @@ document.getElementById('searchInput').addEventListener('input', e => {
   render();
 });
 
-['Autor','Apto','Asignatura','Tema'].forEach(name => {
+['Autor','Asignatura','Tema'].forEach(name => {
   document.getElementById('filter' + name).addEventListener('change', e => {
     filters.libros[name.toLowerCase()] = e.target.value;
     render();
   });
+});
+document.getElementById('filterAnio').addEventListener('change', e => {
+  filters.libros.anio = e.target.value;
+  render();
 });
 
 document.getElementById('filterCategoria').addEventListener('change', e => {
@@ -486,7 +499,7 @@ document.getElementById('filterCategoria').addEventListener('change', e => {
 });
 
 document.getElementById('clearFilters').addEventListener('click', () => {
-  filters.libros = { autor:'', apto:'', asignatura:'', tema:'', q:'' };
+  filters.libros = { autor:'', anio:'', asignatura:'', tema:'', q:'' };
   filters.recursos = { categoria:'', q:'' };
   document.querySelectorAll('select').forEach(s => s.value = '');
   document.getElementById('searchInput').value = '';
