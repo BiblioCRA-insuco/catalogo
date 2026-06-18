@@ -123,7 +123,7 @@ async function init(){
     const total = allLibros.length + allRecursos.length;
     status.textContent = `${total} ítems cargados · actualizado al abrir la página`;
 
-    document.getElementById('countLibros').textContent = allLibros.length;
+    document.getElementById('countLibros').textContent = allLibros.filter(i => !(i.raw['Notas'] || '').toLowerCase().includes('retirado')).length;
     document.getElementById('countRecursos').textContent = allRecursos.length;
 
     populateFilters();
