@@ -53,9 +53,10 @@
     width:50px; height:50px;
     font-size:1rem;
     flex-shrink:0;
-    background-image: url(https://liceoica.cl/wp-content/uploads/2020/09/logo-cra-sm.png);
+    background-image: url(https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRnlyeTYFqKEpgPM18ERe9AIrMRijTCB_wdNIDzbWsHUY067FF4CONS0mGW&s=10);
     background-size: contain;
     background-repeat: no-repeat; 
+    border-radius: 50%;
   }
 
   .meta-status{
@@ -397,7 +398,6 @@
   }
   table.catalog-table{
     width:100%;
-    min-width:600px;
     border-collapse:collapse;
     font-size:0.85rem;
   }
@@ -506,7 +506,7 @@
     padding:20px;
   }
   .modal-overlay.open{ display:flex; }
-  .modal{
+  .modal-{
     background:var(--paper);
     border-radius:12px;
     max-width:700px;
@@ -630,7 +630,8 @@
     table.catalog-table{ font-size:0.8rem; }
     table.catalog-table .col-tags,
     table.catalog-table thead th:nth-child(4),
-    table.catalog-table tbody td:nth-child(4){ display:none; }
+    table.catalog-table thead th:nth-child(5),
+    table.catalog-table tbody td:nth-child(5){ display:none; }
     .modal-inner{ grid-template-columns:1fr; }
     .modal-cover{ max-width:160px; margin:0 auto; }
     .brand-row{ flex-direction:column; align-items:flex-start; }

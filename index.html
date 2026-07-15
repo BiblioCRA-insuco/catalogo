@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Catálogo de Biblioteca</title>
 <link rel="stylesheet" href="styles.css">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@200..700&display=swap" rel="stylesheet">
@@ -17,7 +18,7 @@
     <div class="brand-row">
       <div class="brand-mark">
         <span class="stamp"></span>
-        Catálogo
+        <h1 class="h2">Catálogo</h1>
       </div>
       <div class="meta-status" id="statusLine">Cargando catálogo…</div>
     </div>
@@ -26,7 +27,9 @@
       <button class="tab-btn active" data-tab="libros">Libros <span class="count" id="countLibros">0</span></button>
       <button class="tab-btn" data-tab="recursos">Recursos <span class="count" id="countRecursos">0</span></button>
     </div>
-
+    <div>
+      <label for="searchInput" class="visually-hidden">Buscador</label>
+    </div>
     <div class="search-row">
       <div class="search-box">
         <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.3-4.3"/></svg>
@@ -92,7 +95,7 @@
 </div>
 
 <div class="modal-overlay" id="modalOverlay">
-  <div class="modal" id="modalContent"></div>
+  <div class="modal-" id="modalContent"></div>
 </div>
 <script src="script.js"></script>
 </body>

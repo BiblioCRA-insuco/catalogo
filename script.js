@@ -314,9 +314,9 @@ function tableHtmlLibros(items){
         ${escapeHtml(item.titulo)}${item.subtitulo ? `<span class="sub">${escapeHtml(item.subtitulo)}</span>` : ''}
       </td>
       <td class="col-muted">${escapeHtml(item.autores || '—')}</td>
-      <td class="col-tags">${escapeHtml(item.raw['Año edición'] || '—')}</td>
+      <td class="col-muted">${escapeHtml(item.raw['Año edición'] || '—')}</td>
       <td class="col-tags">${escapeHtml(item.asignaturas || '—')}</td>
-      <td class="col-qty">×${escapeHtml(item.cantidad || '0')}</td>
+      <td class="col-tags">×${escapeHtml(item.cantidad || '0')}</td>
     </tr>`).join('');
 
   return `
@@ -326,7 +326,7 @@ function tableHtmlLibros(items){
           <tr>
             <th>Título</th>
             <th>Autores</th>
-            <th>Año edición</th>
+            <th>Año</th>
             <th>Asignaturas</th>
             <th style="text-align:right">Cantidad</th>
           </tr>
@@ -342,7 +342,7 @@ function tableHtmlRecursos(items){
       <td class="col-thumb"><div class="table-thumb">${coverImg(item)}</div></td>
       <td class="col-title">${escapeHtml(item.titulo)}</td>
       <td class="col-muted">${escapeHtml(item.categoria || '—')}</td>
-      <td class="col-qty">×${escapeHtml(item.cantidad || '0')}</td>
+      <td class="col-tags">×${escapeHtml(item.cantidad || '0')}</td>
     </tr>`).join('');
 
   return `
@@ -350,10 +350,10 @@ function tableHtmlRecursos(items){
       <table class="catalog-table">
         <thead>
           <tr>
-            <th></th>
+            <th>Imagen</th>
             <th>Recurso</th>
             <th>Categoría</th>
-            <th style="text-align:right">Cantidad total</th>
+            <th class="col-tags">Cantidad total</th>
           </tr>
         </thead>
         <tbody>${rows}</tbody>
@@ -431,7 +431,7 @@ function openModal(item){
   fields = fields.filter(([,v]) => v && v.trim());
 
   content.innerHTML = `
-    <button class="modal-close" id="modalCloseBtn" aria-label="Cerrar">×</button>
+    <button class="modal-close" id="modalCloseBtn" aria-label="Cerrar">X</button>
     <div class="modal-inner">
       <div class="modal-cover">${coverImg(item)}</div>
       <div>
@@ -442,9 +442,9 @@ function openModal(item){
           ${fields.map(([k,v]) => `<div class="field"><div class="k">${escapeHtml(k)}</div><div class="v">${escapeHtml(v)}</div></div>`).join('')}
           <div class="field full"><div class="k">Disponibles</div><div class="v">${escapeHtml(item.cantidad || '0')}</div></div>
         </div>
-        ${item.descripcion ? `<div class="modal-desc"><h3>Descripción</h3><p>${escapeHtml(item.descripcion)}</p></div>` : ''}
-        ${r['Notas'] ? `<div class="modal-notes"><h3>Notas</h3>${escapeHtml(r['Notas'])}</div>` : ''}
-        ${!isLibro && r['Recomendaciones'] ? `<div class="modal-notes"><h3>Recomendaciones de uso</h3>${escapeHtml(r['Recomendaciones'])}</div>` : ''}
+        ${item.descripcion ? `<div class="modal-desc"><h3 class="modal-title h5">Descripción</h3><p>${escapeHtml(item.descripcion)}</p></div>` : ''}
+        ${r['Notas'] ? `<div class="modal-notes"><h3 class="modal-title h5">Notas</h3>${escapeHtml(r['Notas'])}</div>` : ''}
+        ${!isLibro && r['Recomendaciones'] ? `<div class="modal-desc"><h3 class="modal-title h5">Recomendaciones de uso</h3>${escapeHtml(r['Recomendaciones'])}</div>` : ''}
       </div>
     </div>`;
 
