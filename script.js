@@ -479,8 +479,25 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
 
 document.getElementById('searchInput').addEventListener('input', e => {
   filters[currentTab].q = e.target.value;
-  render();
 });
+
+document.getElementById('searchInput').addEventListener('keydown', e => {
+  if(e.key === 'Enter') ejecutarBusqueda();
+});
+
+document.getElementById('btnBuscar').addEventListener('click', ejecutarBusqueda);
+
+function ejecutarBusqueda(){
+  const q = filters[currentTab].q;
+  const params = new URLSearchParams(location.search);
+  if(q) params.set('q', q);
+  else params.delete('q');
+  history.replaceState(null, '', '?' + params.toString() + location.hash);
+  if(typeof gtag !== 'undefined' && q.length > 2){
+    gtag('event', 'search', { search_term: q });
+  }
+  render();
+}
 
 ['Autor','Asignatura','Tema'].forEach(name => {
   document.getElementById('filter' + name).addEventListener('change', e => {

@@ -9,6 +9,15 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@200..700&display=swap" rel="stylesheet">
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-HL5DMVR7LJ"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-HL5DMVR7LJ');
+</script>
 </head>
 
 <body>
@@ -32,8 +41,11 @@
     </div>
     <div class="search-row">
       <div class="search-box">
-        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.3-4.3"/></svg>
+        
         <input type="text" id="searchInput" placeholder="Buscar por título, autor o tema…">
+        <button id="btnBuscar" aria-label="Buscar">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.3-4.3"/></svg>
+        </button>
       </div>
       <div class="view-toggle">
         <button id="btnGrid" title="Vista de tarjetas">
@@ -98,5 +110,6 @@
   <div class="modal-" id="modalContent"></div>
 </div>
 <script src="script.js"></script>
+
 </body>
 </html>
