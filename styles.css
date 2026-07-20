@@ -619,7 +619,6 @@
     font-size:0.88rem;
     line-height:1.6;
     color:var(--ink);
-    border-top:1px solid var(--line);
     padding-top:14px;
   }
   .modal-desc h4{

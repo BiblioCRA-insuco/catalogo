@@ -18,7 +18,7 @@ let currentView = 'list';  // 'list' | 'grid'
 
 let filters = {
   libros:   { autor:'', anio:'', asignatura:'', tema:'', q:'' },
-  recursos: { categoria:'', q:'' }
+  recursos: { categoria:'', asignatura:'', q:'' }
 };
 
 /* ====================== UTILIDADES ====================== */
@@ -172,10 +172,13 @@ function populateFilters(){
 
   // Recursos
   const categorias = new Set();
+  const asignaturasR = new Set();
   allRecursos.forEach(item => {
     splitMulti(item.categoria).forEach(c => categorias.add(c));
+    splitMulti(item.raw['Asignaturas']).forEach(a => asignaturasR.add(a));
   });
   fillSelect('filterCategoria', categorias, 'Todas las categorías');
+  fillSelect('filterAsignaturaR', asignaturasR, 'Todas las asignaturas');
 }
 
 function fillSelect(id, valuesSet, placeholder){
@@ -205,6 +208,7 @@ function applyFilters(){
   } else {
     return allRecursos.filter(item => {
       if(f.categoria && !splitMulti(item.categoria).includes(f.categoria)) return false;
+      if(f.asignatura && !splitMulti(item.raw['Asignaturas']).includes(f.asignatura)) return false;
       if(q){
         const hay = `${item.titulo} ${item.categoria} ${item.descripcion}`.toLowerCase();
         if(!hay.includes(q)) return false;
@@ -426,6 +430,8 @@ function openModal(item){
     fields = [
       ['Categoría', r['Categoría']],
       ['Cantidad total', r['Cantidad total']],
+      ['Asignaturas', r['Asignaturas']],
+      ['Cantidad disponible', r['Cantidad disponible']],
     ];
   }
   fields = fields.filter(([,v]) => v && v.trim());
@@ -440,11 +446,10 @@ function openModal(item){
         ${item.subtitulo && isLibro ? `<p class="modal-sub">${escapeHtml(item.subtitulo)}</p>` : ''}
         <div class="modal-fields">
           ${fields.map(([k,v]) => `<div class="field"><div class="k">${escapeHtml(k)}</div><div class="v">${escapeHtml(v)}</div></div>`).join('')}
-          <div class="field full"><div class="k">Disponibles</div><div class="v">${escapeHtml(item.cantidad || '0')}</div></div>
         </div>
         ${item.descripcion ? `<div class="modal-desc"><h3 class="modal-title h5">Descripción</h3><p>${escapeHtml(item.descripcion)}</p></div>` : ''}
         ${r['Notas'] ? `<div class="modal-notes"><h3 class="modal-title h5">Notas</h3>${escapeHtml(r['Notas'])}</div>` : ''}
-        ${!isLibro && r['Recomendaciones'] ? `<div class="modal-desc"><h3 class="modal-title h5">Recomendaciones de uso</h3>${escapeHtml(r['Recomendaciones'])}</div>` : ''}
+        ${!isLibro && r['Contiene'] ? `<div class="modal-desc"><h3 class="modal-title h5">Contiene</h3>${escapeHtml(r['Contiene'])}</div>` : ''}
       </div>
     </div>`;
 
@@ -515,9 +520,14 @@ document.getElementById('filterCategoria').addEventListener('change', e => {
   render();
 });
 
+document.getElementById('filterAsignaturaR').addEventListener('change', e => {
+  filters.recursos.asignatura = e.target.value;
+  render();
+});
+
 document.getElementById('clearFilters').addEventListener('click', () => {
   filters.libros = { autor:'', anio:'', asignatura:'', tema:'', q:'' };
-  filters.recursos = { categoria:'', q:'' };
+  filters.recursos = { categoria:'', asignatura:'', q:'' };
   document.querySelectorAll('select').forEach(s => s.value = '');
   document.getElementById('searchInput').value = '';
   render();
