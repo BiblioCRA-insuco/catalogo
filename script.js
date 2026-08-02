@@ -425,6 +425,7 @@ function openModal(item){
       ['N° páginas', r['Número páginas']],
       ['Serie / volumen', [r['Serie o colección'], r['Volumen']].filter(Boolean).join(' — ')],
       ['Plan lector', r['Pertenece plan lector']],
+      ['Marbete', r['Marbete']],
     ];
   } else {
     fields = [
